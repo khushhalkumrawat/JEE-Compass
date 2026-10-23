@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom' // <-- Add this
 import { ChevronRight } from 'lucide-react'
-import { studyTasks } from '../../data/dashboard'
+import { initialStudyTasks } from '../../data/dashboard'
 import type { StudyTask } from '../../types'
 
 export default function StudyPlan() {
   const navigate = useNavigate() // <-- Initialize hook
-  const [tasks, setTasks] = useState<StudyTask[]>(studyTasks)
+  const [tasks, setTasks] = useState<StudyTask[]>(initialStudyTasks)
 
   function toggleTask(id: number) {
     setTasks((prev) =>

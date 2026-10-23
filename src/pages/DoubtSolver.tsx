@@ -1,5 +1,4 @@
-import ReactMarkdown from 'react-markdown'
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   ArrowUp,
   Bot,
@@ -7,140 +6,144 @@ import {
   Check,
   ChevronDown,
   CircleHelp,
-  Copy,
   LoaderCircle,
   MessageCircle,
   Plus,
   Sparkles,
   UserRound,
-} from 'lucide-react'
-import { askDoubt, type ChatMessage } from '../services/api'
+} from "lucide-react";
+import { askDoubt, type ChatMessage } from "../services/api";
 
-const subjects = ['Physics', 'Chemistry', 'Mathematics'] as const
+const subjects = ["Physics", "Chemistry", "Mathematics"] as const;
 
 const suggestions = [
   {
-    title: 'Explain a concept',
-    prompt: 'Explain the work-energy theorem with derivations and standard JEE sign conventions.',
+    title: "Explain a concept",
+    description:
+      "Help me understand a difficult concept from first principles.",
     icon: BookOpen,
   },
   {
-    title: 'Solve a numerical',
-    prompt: 'A car travelling at 20 m/s brakes with deceleration of 4 m/s^2. Find the stopping distance.',
+    title: "Solve a numerical",
+    description: "Solve a JEE numerical step by step with formulas.",
     icon: CircleHelp,
   },
   {
-    title: 'JEE shortcut',
-    prompt: 'Give me the quick method to find the hybridisation and shape of XeF4 and SF4.',
+    title: "JEE shortcut",
+    description: "Show me a faster method to solve a JEE question.",
     icon: Sparkles,
   },
-]
+];
 
 export default function DoubtSolver() {
-  const [subject, setSubject] = useState<'Physics' | 'Chemistry' | 'Mathematics'>('Physics')
-  const [topic, setTopic] = useState('')
-  const [input, setInput] = useState('')
-  const [messages, setMessages] = useState<ChatMessage[]>([])
-  const [loading, setLoading] = useState(false)
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
-  const bottomRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const [subject, setSubject] = useState("Physics");
+  const [topic, setTopic] = useState("");
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
-  }, [messages, loading])
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, loading]);
 
-  async function handleSubmit(event?: FormEvent, customPrompt?: string) {
-    event?.preventDefault()
-    const question = (customPrompt ?? input).trim()
-    if (!question || loading) return
+  async function handleSubmit(event?: FormEvent, prompt?: string) {
+    event?.preventDefault();
 
+    const question = (prompt ?? input).trim();
+
+    if (!question || loading) return;
+
+    const previousMessages = messages;
     const userMessage: ChatMessage = {
-      role: 'user',
+      role: "user",
       content: question,
-    }
+    };
 
-    setMessages((curr) => [...curr, userMessage])
-    setInput('')
-    setLoading(true)
+    setMessages((current) => [...current, userMessage]);
+    setInput("");
+    setError("");
+    setLoading(true);
 
     try {
       const answer = await askDoubt({
         question,
         subject,
         topic,
-        history: messages.slice(-6),
-      })
+        history: previousMessages.slice(-8),
+      });
 
-      setMessages((curr) => [...curr, { role: 'assistant', content: answer }])
-    } catch {
-      setMessages((curr) => [
-        ...curr,
-        {
-          role: 'assistant',
-          content:
-            "I'm currently reviewing this concept. Please rephrase your question or verify your internet connection.",
-        },
-      ])
+      setMessages((current) => [
+        ...current,
+        { role: "assistant", content: answer },
+      ]);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again.",
+      );
     } finally {
-      setLoading(false)
-      inputRef.current?.focus()
+      setLoading(false);
+      inputRef.current?.focus();
     }
   }
 
-  function handleCopy(text: string, index: number) {
-    navigator.clipboard.writeText(text)
-    setCopiedIndex(index)
-    setTimeout(() => setCopiedIndex(null), 2000)
-  }
-
   function startNewChat() {
-    if (loading) return
-    setMessages([])
-    setInput('')
-    setTopic('')
-    inputRef.current?.focus()
+    if (loading) return;
+    setMessages([]);
+    setInput("");
+    setError("");
+    setTopic("");
+    inputRef.current?.focus();
   }
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-7.5rem)] w-full max-w-5xl flex-col gap-5 pb-6">
-      {/* Top Header */}
+    <div className="mx-auto flex min-h-[calc(100vh-7rem)] w-full max-w-6xl flex-col gap-6 pb-6">
+      {" "}
       <header className="flex flex-wrap items-center justify-between gap-4">
+        {" "}
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-300">
-            <Sparkles size={14} />
-            AI STUDY COPILOT
+          {" "}
+          <div className="mb-2 flex items-center gap-2 text-sm font-medium text-cyan-400">
+            {" "}
+            <Sparkles size={16} />
+            YOUR PERSONAL JEE TUTOR{" "}
           </div>
-          <h1 className="mt-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">
-            24/7 JEE Doubt Solver
+          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            AI Doubt Solver
           </h1>
-          <p className="mt-1 text-xs text-slate-400 sm:text-sm">
-            Instant step-by-step solutions, derivations, and formulas tailored for JEE Main & Advanced.
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+            Stuck on a concept or numerical? Ask your doubt and learn the
+            solution step by step.
           </p>
         </div>
-
         <button
           onClick={startNewChat}
           disabled={loading}
-          className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-[#0d1423] px-4 py-2.5 text-xs font-semibold text-slate-200 transition hover:border-cyan-400/30 hover:bg-slate-800 disabled:opacity-40"
+          className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-white/[0.08] disabled:opacity-50"
         >
-          <Plus size={15} />
-          New Query
+          <Plus size={16} />
+          New chat
         </button>
       </header>
-
-      {/* Target Subject & Topic Selectors */}
-      <section className="grid gap-3 rounded-2xl border border-white/[0.08] bg-[#0d1423] p-4 sm:grid-cols-2">
+      <section className="grid gap-4 rounded-2xl border border-white/[0.08] bg-[#0d1423] p-4 sm:grid-cols-2 sm:p-5">
         <div>
-          <label htmlFor="doubt-subject" className="mb-1.5 block text-xs font-medium text-slate-400">
-            Select Subject
+          <label
+            htmlFor="doubt-subject"
+            className="mb-2 block text-sm font-medium text-slate-300"
+          >
+            Subject
           </label>
+
           <div className="relative">
             <select
               id="doubt-subject"
               value={subject}
-              onChange={(e) => setSubject(e.target.value as typeof subject)}
-              className="w-full appearance-none rounded-xl border border-white/10 bg-[#111b2d] px-3.5 py-2.5 pr-10 text-xs font-medium text-white outline-none transition focus:border-cyan-400"
+              onChange={(event) => setSubject(event.target.value)}
+              className="w-full appearance-none rounded-xl border border-white/10 bg-[#111b2d] px-4 py-3 pr-10 text-sm text-white outline-none transition focus:border-cyan-400/60"
             >
               {subjects.map((item) => (
                 <option key={item} value={item}>
@@ -149,193 +152,230 @@ export default function DoubtSolver() {
               ))}
             </select>
             <ChevronDown
-              size={15}
-              className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+              size={16}
+              className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
             />
           </div>
         </div>
 
         <div>
-          <label htmlFor="doubt-topic" className="mb-1.5 block text-xs font-medium text-slate-400">
-            Chapter or Specific Formula <span className="text-slate-500">(Optional)</span>
+          <label
+            htmlFor="doubt-topic"
+            className="mb-2 block text-sm font-medium text-slate-300"
+          >
+            Chapter or topic <span className="text-slate-500">(optional)</span>
           </label>
+
           <input
             id="doubt-topic"
             value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-            placeholder="e.g., Electrostatics, Thermodynamics, Matrices"
-            maxLength={100}
-            className="w-full rounded-xl border border-white/10 bg-[#111b2d] px-3.5 py-2.5 text-xs text-white outline-none placeholder:text-slate-600 transition focus:border-cyan-400"
+            onChange={(event) => setTopic(event.target.value)}
+            placeholder="e.g. Rotational Motion"
+            maxLength={150}
+            className="w-full rounded-xl border border-white/10 bg-[#111b2d] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 transition focus:border-cyan-400/60"
           />
         </div>
       </section>
-
-      {/* Conversation Window */}
-      <section className="flex min-h-[460px] flex-1 flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0d1423]">
-        {/* Status bar */}
-        <div className="flex items-center justify-between border-b border-white/[0.06] bg-[#0a0f1d] px-5 py-3">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-cyan-400/10 text-cyan-300">
-              <Bot size={17} />
-            </div>
-            <span className="text-xs font-semibold text-slate-200">JEE Compass Tutor</span>
-            <span className="text-xs text-slate-500">({subject})</span>
+      <section className="flex min-h-[440px] flex-1 flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0d1423]">
+        <div className="flex items-center gap-3 border-b border-white/[0.07] px-5 py-4">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-300">
+            <Bot size={21} />
           </div>
 
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-300">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-            Tutor Online
+          <div className="min-w-0 flex-1">
+            <h2 className="font-semibold text-white">JEE Compass Tutor</h2>
+            <p className="mt-0.5 text-xs text-slate-400">
+              {subject} · Step-by-step explanations
+            </p>
+          </div>
+
+          <span className="flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/[0.07] px-2.5 py-1 text-xs text-emerald-300">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            Tutor ready
           </span>
         </div>
 
-        {/* Chat Messages */}
-        <div className="flex-1 space-y-5 overflow-y-auto p-4 sm:p-6">
+        <div className="flex-1 space-y-5 p-4 sm:p-6">
           {messages.length === 0 ? (
-            <div className="mx-auto flex max-w-xl flex-col items-center py-10 text-center">
-              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-300">
-                <MessageCircle size={26} />
+            <div className="mx-auto flex max-w-2xl flex-col items-center py-8 text-center sm:py-12">
+              <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/[0.08] text-cyan-300">
+                <MessageCircle size={30} />
               </div>
-              <h2 className="text-lg font-bold text-white">Ask your first doubt</h2>
-              <p className="mt-1 text-xs text-slate-400">
-                Type any formula, conceptual problem, or question. Choose a starter to test:
+
+              <h3 className="text-xl font-semibold text-white">
+                What are you stuck on?
+              </h3>
+
+              <p className="mt-2 max-w-md text-sm leading-6 text-slate-400">
+                Ask any JEE-related question. I'll help you understand the
+                reasoning instead of just giving you the answer.
               </p>
 
-              <div className="mt-6 grid w-full gap-2.5 text-left sm:grid-cols-3">
-                {suggestions.map((item) => {
-                  const Icon = item.icon
+              <div className="mt-8 grid w-full gap-3 text-left sm:grid-cols-3">
+                {suggestions.map((suggestion) => {
+                  const Icon = suggestion.icon;
+
                   return (
                     <button
-                      key={item.title}
+                      key={suggestion.title}
                       disabled={loading}
-                      onClick={() => handleSubmit(undefined, item.prompt)}
-                      className="group rounded-xl border border-white/[0.07] bg-white/[0.02] p-3.5 transition hover:border-cyan-400/30 hover:bg-cyan-400/[0.03] disabled:opacity-40"
+                      onClick={() =>
+                        handleSubmit(
+                          undefined,
+                          `${suggestion.title}: ${suggestion.description}`,
+                        )
+                      }
+                      className="group rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 text-left transition hover:border-cyan-400/30 hover:bg-cyan-400/[0.04] disabled:opacity-50"
                     >
-                      <Icon size={16} className="mb-2 text-cyan-300" />
-                      <p className="text-xs font-semibold text-slate-200">{item.title}</p>
-                      <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-slate-500">
-                        {item.prompt}
+                      <Icon
+                        size={20}
+                        className="mb-3 text-cyan-300 transition group-hover:scale-110"
+                      />
+                      <p className="text-sm font-medium text-white">
+                        {suggestion.title}
+                      </p>
+                      <p className="mt-2 text-xs leading-5 text-slate-400">
+                        {suggestion.description}
                       </p>
                     </button>
-                  )
+                  );
                 })}
               </div>
             </div>
           ) : (
             messages.map((message, index) => (
               <div
-                key={index}
+                key={`${index}-${message.role}`}
                 className={`flex items-start gap-3 ${
-                  message.role === 'user' ? 'flex-row-reverse' : ''
+                  message.role === "user" ? "flex-row-reverse" : ""
                 }`}
               >
                 <div
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                    message.role === 'user'
-                      ? 'bg-indigo-500/15 text-indigo-300'
-                      : 'bg-cyan-400/10 text-cyan-300'
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
+                    message.role === "user"
+                      ? "bg-violet-400/10 text-violet-300"
+                      : "bg-cyan-400/10 text-cyan-300"
                   }`}
                 >
-                  {message.role === 'user' ? <UserRound size={16} /> : <Bot size={17} />}
+                  {message.role === "user" ? (
+                    <UserRound size={18} />
+                  ) : (
+                    <Bot size={19} />
+                  )}
                 </div>
 
                 <div
-                  className={`relative max-w-[85%] rounded-2xl p-4 sm:max-w-[78%] ${
-                    message.role === 'user'
-                      ? 'bg-indigo-600/15 text-indigo-100 ring-1 ring-indigo-500/20'
-                      : 'border border-white/[0.07] bg-slate-900/60 text-slate-200'
+                  className={`max-w-[88%] rounded-2xl px-4 py-3 sm:max-w-[80%] ${
+                    message.role === "user"
+                      ? "rounded-tr-sm bg-violet-500/10 text-slate-100"
+                      : "rounded-tl-sm border border-white/[0.07] bg-white/[0.025] text-slate-200"
                   }`}
                 >
-                  <div className="mb-2 flex items-center justify-between gap-4">
-                    <span className="text-[11px] font-semibold tracking-wider text-slate-400">
-                      {message.role === 'user' ? 'YOU' : 'JEE TUTOR SOLUTION'}
-                    </span>
+                  <p className="mb-2 text-xs font-medium text-slate-400">
+                    {message.role === "user" ? "You" : "JEE Compass Tutor"}
+                  </p>
 
-                    {message.role === 'assistant' && (
-                      <button
-                        onClick={() => handleCopy(message.content, index)}
-                        className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] text-slate-400 hover:bg-white/[0.06] hover:text-white"
-                        title="Copy solution"
-                      >
-                        {copiedIndex === index ? (
-                          <>
-                            <Check size={11} className="text-emerald-400" />
-                            <span className="text-emerald-400">Copied</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy size={11} />
-                            <span>Copy</span>
-                          </>
-                        )}
-                      </button>
-                    )}
+                  <div className="whitespace-pre-wrap break-words text-sm leading-7">
+                    {message.content}
                   </div>
-
-                  {message.role === 'user' ? (
-                    <p className="whitespace-pre-wrap text-xs font-medium leading-relaxed">
-                      {message.content}
-                    </p>
-                  ) : (
-                    <div className="space-y-2.5 text-xs leading-relaxed text-slate-200 [&_h3]:text-sm [&_h3]:font-bold [&_h3]:text-cyan-300 [&_li]:my-1 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:text-white [&_ul]:list-disc [&_ul]:pl-4">
-                      <ReactMarkdown>{message.content}</ReactMarkdown>
-                    </div>
-                  )}
                 </div>
               </div>
             ))
           )}
 
           {loading && (
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-400/10 text-cyan-300">
-                <Bot size={17} />
+            <div className="flex items-start gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-300">
+                <Bot size={19} />
               </div>
-              <div className="flex items-center gap-2 rounded-2xl border border-white/[0.07] bg-slate-900/60 px-4 py-3 text-xs text-slate-400">
-                <LoaderCircle size={15} className="animate-spin text-cyan-400" />
-                Formulating step-by-step solution...
+
+              <div className="flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] px-4 py-3 text-sm text-slate-400">
+                <LoaderCircle
+                  size={16}
+                  className="animate-spin text-cyan-300"
+                />
+                Working through your doubt...
               </div>
+            </div>
+          )}
+
+          {error && (
+            <div
+              role="alert"
+              className="ml-12 rounded-xl border border-rose-400/20 bg-rose-400/[0.06] p-4 text-sm text-rose-200"
+            >
+              <p>{error}</p>
+              <button
+                onClick={() => {
+                  const lastUserMessage = [...messages]
+                    .reverse()
+                    .find((message) => message.role === "user");
+
+                  if (lastUserMessage) {
+                    setMessages((current) => current.slice(0, -1));
+                    setInput(lastUserMessage.content);
+                    setError("");
+                  }
+                }}
+                className="mt-2 font-medium underline underline-offset-4"
+              >
+                Edit question and try again
+              </button>
             </div>
           )}
 
           <div ref={bottomRef} />
         </div>
 
-        {/* Input Bar */}
-        <form onSubmit={handleSubmit} className="border-t border-white/[0.06] bg-[#0a0f1d] p-3 sm:p-4">
-          <div className="flex items-end gap-2 rounded-xl border border-white/10 bg-[#111b2d] p-2 transition focus-within:border-cyan-400/50">
+        <form
+          onSubmit={(event) => handleSubmit(event)}
+          className="border-t border-white/[0.07] p-4 sm:p-5"
+        >
+          <div className="rounded-2xl border border-white/10 bg-[#111b2d] p-2 transition focus-within:border-cyan-400/40">
             <textarea
               ref={inputRef}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
-                  void handleSubmit()
+              onChange={(event) => setInput(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
+                  void handleSubmit();
                 }
               }}
-              placeholder={`Ask any ${subject} question (e.g., "Find the equivalent resistance across terminals A and B")...`}
-              rows={1}
-              maxLength={2000}
+              placeholder={`Ask your ${subject} doubt here...`}
+              rows={2}
+              maxLength={4000}
               disabled={loading}
-              className="max-h-32 min-h-[38px] flex-1 resize-none bg-transparent px-2.5 py-1.5 text-xs text-white outline-none placeholder:text-slate-500 disabled:opacity-50"
+              className="max-h-40 min-h-14 w-full resize-y bg-transparent px-3 py-2 text-sm leading-6 text-white outline-none placeholder:text-slate-500 disabled:opacity-60"
             />
 
-            <button
-              type="submit"
-              disabled={loading || !input.trim()}
-              aria-label="Submit Question"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cyan-400 font-bold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-30"
-            >
-              {loading ? <LoaderCircle size={16} className="animate-spin" /> : <ArrowUp size={16} />}
-            </button>
+            <div className="flex items-center justify-between gap-3 px-2 pb-1">
+              <span className="text-xs text-slate-500">
+                <span className="hidden sm:inline">Enter to send · </span>
+                Shift + Enter for a new line
+              </span>
+
+              <button
+                type="submit"
+                disabled={loading || !input.trim()}
+                aria-label="Send doubt"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-400 text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {loading ? (
+                  <LoaderCircle size={18} className="animate-spin" />
+                ) : (
+                  <ArrowUp size={19} />
+                )}
+              </button>
+            </div>
           </div>
 
-          <div className="mt-2 flex items-center justify-between px-1 text-[11px] text-slate-500">
-            <span>Press Enter to send · Shift + Enter for new line</span>
-            <span>JEE Compass 2026</span>
-          </div>
+          <p className="mt-3 text-center text-xs text-slate-500">
+            AI can make mistakes. Verify important formulas and answers with
+            trusted study material.
+          </p>
         </form>
       </section>
     </div>
-  )
+  );
 }

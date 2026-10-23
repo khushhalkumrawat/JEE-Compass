@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   AlertTriangle,
   ArrowRight,
@@ -8,24 +8,24 @@ import {
   Target,
   TrendingUp,
   XCircle,
-} from "lucide-react";
-import { analyzeTestResult } from "../utils/analysis";
-import type { TestResult } from "../types/test";
+} from 'lucide-react'
+import { analyzeTestResult } from '../utils/analysis'
+import type { TestResult } from '../types/test'
 
 export default function PerformanceAnalysis() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   const analysis = useMemo(() => {
-    const saved = sessionStorage.getItem("jee-compass-test-result");
+    const saved = sessionStorage.getItem('jee-compass-test-result')
 
-    if (!saved) return null;
+    if (!saved) return null
 
     try {
-      return analyzeTestResult(JSON.parse(saved) as TestResult);
+      return analyzeTestResult(JSON.parse(saved) as TestResult)
     } catch {
-      return null;
+      return null
     }
-  }, []);
+  }, [])
 
   if (!analysis) {
     return (
@@ -44,13 +44,13 @@ export default function PerformanceAnalysis() {
 
         <button
           type="button"
-          onClick={() => navigate("/tests")}
+          onClick={() => navigate('/tests')}
           className="mt-6 rounded-xl bg-cyan-400 px-5 py-3 font-bold text-slate-950"
         >
           Start a Mock Test
         </button>
       </section>
-    );
+    )
   }
 
   const averageAccuracy =
@@ -59,16 +59,16 @@ export default function PerformanceAnalysis() {
           analysis.subjects.reduce((sum, item) => sum + item.accuracy, 0) /
             analysis.subjects.length,
         )
-      : 0;
+      : 0
 
   const incorrectQuestions = analysis.questionReviews.filter(
     (item) => item.userAnswer !== null && !item.isCorrect,
-  );
+  )
 
   const revisionTopics =
     analysis.weakTopics.length > 0
       ? analysis.weakTopics
-      : analysis.topics.filter((topic) => topic.attempted > 0).slice(0, 3);
+      : analysis.topics.filter((topic) => topic.attempted > 0).slice(0, 3)
 
   return (
     <div className="space-y-6">
@@ -103,20 +103,15 @@ export default function PerformanceAnalysis() {
       </div>
 
       <section className="rounded-2xl border border-white/10 bg-[#0d1423] p-6">
-        <h2 className="text-xl font-bold text-white">
-          Subject-wise Performance
-        </h2>
+        <h2 className="text-xl font-bold text-white">Subject-wise Performance</h2>
 
         <div className="mt-5 space-y-5">
           {analysis.subjects.map((subject) => (
             <div key={subject.subject}>
               <div className="mb-2 flex items-center justify-between gap-4">
-                <span className="font-medium text-white">
-                  {subject.subject}
-                </span>
+                <span className="font-medium text-white">{subject.subject}</span>
                 <span className="text-sm text-slate-400">
-                  {subject.correct}/{subject.attempted} correct ·{" "}
-                  {subject.accuracy}%
+                  {subject.correct}/{subject.attempted} correct · {subject.accuracy}%
                 </span>
               </div>
 
@@ -156,8 +151,7 @@ export default function PerformanceAnalysis() {
                   Accuracy: {topic.accuracy}% · {topic.incorrect} incorrect
                 </p>
                 <p className="mt-3 text-sm text-slate-300">
-                  Recommendation: Revise the concepts and solve more practice
-                  questions.
+                  Recommendation: Revise the concepts and solve more practice questions.
                 </p>
               </article>
             ))}
@@ -227,14 +221,14 @@ export default function PerformanceAnalysis() {
 
         <button
           type="button"
-          onClick={() => navigate("/tests")}
+          onClick={() => navigate('/tests')}
           className="flex items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 font-bold text-slate-950"
         >
           Take Another Test <ArrowRight size={17} />
         </button>
       </section>
     </div>
-  );
+  )
 }
 
 function StatCard({
@@ -242,9 +236,9 @@ function StatCard({
   value,
   icon,
 }: {
-  title: string;
-  value: string;
-  icon: React.ReactNode;
+  title: string
+  value: string
+  icon: React.ReactNode
 }) {
   return (
     <article className="rounded-2xl border border-white/10 bg-[#0d1423] p-5">
@@ -254,5 +248,5 @@ function StatCard({
       </div>
       <p className="mt-4 text-3xl font-bold text-white">{value}</p>
     </article>
-  );
+  )
 }
