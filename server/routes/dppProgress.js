@@ -1,6 +1,7 @@
 ﻿const express = require("express");
 const mongoose = require("mongoose");
 const DPPProgress = require("../models/DPPProgress");
+const { recordStudyActivity } = require("../utils/studyActivity");
 const { authenticateToken } = require("./auth");
 
 const router = express.Router();
@@ -99,6 +100,14 @@ router.put("/", async (req, res) => {
         setDefaultsOnInsert: true,
       },
     );
+
+    if (Object.keys(answered).length > 0) {
+      try {
+        await recordStudyActivity(req.studentId);
+      } catch (activityError) {
+        console.error("Failed to record DPP activity:", activityError.message);
+      }
+    }
 
     return res.json({
       success: true,

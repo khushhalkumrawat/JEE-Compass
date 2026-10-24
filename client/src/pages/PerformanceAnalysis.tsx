@@ -111,7 +111,7 @@ export default function PerformanceAnalysis() {
       // The existing analysis utility expects numeric IDs.
       const allAnswers = sortedResults.flatMap((result) =>
         result.answers.map((answer) => ({
-          questionId: Number(answer.questionId),
+          questionId: String(answer.questionId),
           answer: answer.answer,
           markedForReview: answer.markedForReview,
         })),
@@ -140,7 +140,7 @@ export default function PerformanceAnalysis() {
             ...latest,
             answers: latest.answers.map((answer) => ({
               ...answer,
-              questionId: Number(answer.questionId),
+              questionId: String(answer.questionId)
             })),
           })
         : null;

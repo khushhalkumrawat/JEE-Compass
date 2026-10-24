@@ -74,7 +74,7 @@ export default function AuthPage() {
 
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-white">
-              JEE Compass
+              PrepZen
             </h1>
             <p className="text-sm text-slate-400">Your path to JEE success</p>
           </div>
@@ -87,7 +87,7 @@ export default function AuthPage() {
             </p>
 
             <h2 className="text-2xl font-bold text-white">
-              {isRegister ? "Create your account" : "Sign in to JEE Compass"}
+              {isRegister ? "Create your account" : "Sign in to PrepZen"}
             </h2>
 
             <p className="mt-2 text-sm leading-6 text-slate-400">
@@ -110,7 +110,7 @@ export default function AuthPage() {
                   </h3>
 
                   <p className="mt-1 text-sm leading-5 text-slate-400">
-                    Evaluating JEE Compass? Use the demo account to explore the
+                    Evaluating PrepZen? Use the demo account to explore the
                     platform.
                   </p>
 
@@ -255,7 +255,7 @@ export default function AuthPage() {
           </form>
 
           <p className="mt-6 text-center text-sm text-slate-400">
-            {isRegister ? "Already have an account?" : "New to JEE Compass?"}{" "}
+            {isRegister ? "Already have an account?" : "New to PrepZen?"}{" "}
             <button
               type="button"
               onClick={switchMode}

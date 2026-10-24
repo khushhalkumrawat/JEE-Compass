@@ -1,7 +1,7 @@
 {
   "name": "jee-compass-server",
   "version": "1.0.0",
-  "description": "JEE Compass API server",
+  "description": "PrepZen API server",
   "main": "index.js",
   "type": "commonjs",
   "scripts": {

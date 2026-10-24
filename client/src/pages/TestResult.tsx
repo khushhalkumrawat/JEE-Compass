@@ -141,7 +141,7 @@ export default function TestResult() {
         <div className="mt-5 space-y-4">
           {sampleQuestions.map((question, index) => {
             const userAttempt = result.answers.find(
-              (a) => a.questionId === question.id,
+              (a) => a.questionId === String(question.id),
             );
             const selected = userAttempt?.answer;
             const isAnswered = selected !== null && selected !== undefined;

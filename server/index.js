@@ -11,6 +11,7 @@ const testResultsRouter = require("./routes/testResults");
 const { router: authRouter, authenticateToken } = require("./routes/auth");
 const questionsRouter = require("./routes/questions");
 const dppProgressRouter = require("./routes/dppProgress");
+const studyActivityRoutes = require("./routes/studyActivity");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -81,7 +82,7 @@ async function connectMongoDB() {
 
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: ["http://localhost:5173", "https://prep-zen-kohl.vercel.app"],
   }),
 );
 
@@ -98,11 +99,13 @@ app.use("/api/auth", authLimiter, authRouter);
 
 app.use("/api/questions", questionsRouter);
 
+app.use("/api/study-activity", studyActivityRoutes);
+
 // Health check
 app.get("/api/health", (req, res) => {
   res.json({
     success: true,
-    message: "JEE Compass backend is running!",
+    message: "PrepZen backend is running!",
   });
 });
 
@@ -158,7 +161,7 @@ app.post("/api/doubts/ask", aiLimiter, authenticateToken, async (req, res) => {
       : [];
 
     const systemPrompt = `
-You are JEE Compass Tutor, an expert tutor for JEE Main and JEE Advanced.
+You are PrepZen Tutor, an expert tutor for JEE Main and JEE Advanced.
 
 Subject: ${selectedSubject}
 Topic: ${selectedTopic || "Not specified"}
@@ -335,7 +338,7 @@ app.use((error, req, res, next) => {
 
 // Start the server and attempt MongoDB connection
 app.listen(PORT, () => {
-  console.log(`JEE Compass backend running at http://localhost:${PORT}`);
+  console.log(`PrepZen backend running at http://localhost:${PORT}`);
 
   connectMongoDB();
 });

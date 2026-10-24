@@ -244,7 +244,7 @@ export default function AdminQuestions() {
           </h1>
 
           <p className="mt-2 text-sm text-slate-400">
-            Create, organize, and publish questions for JEE Compass.
+            Create, organize, and publish questions for PrepZen.
           </p>
         </div>
 

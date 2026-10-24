@@ -31,7 +31,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
             <div>
               <h1 className="text-lg font-bold tracking-tight text-white">
-                JEE Compass
+                PrepZen
               </h1>
               <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
                 Your AI Study Coach
