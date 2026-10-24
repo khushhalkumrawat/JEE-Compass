@@ -5,6 +5,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const testResultsRouter = require("./routes/testResults");
 const { router: authRouter } = require("./routes/auth");
+const questionsRouter = require("./routes/questions");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -46,6 +47,8 @@ app.use(express.json({ limit: "20kb" }));
 app.use("/api/test-results", testResultsRouter);
 
 app.use("/api/auth", authRouter);
+
+app.use("/api/questions", questionsRouter);
 
 // Health check
 app.get("/api/health", (req, res) => {

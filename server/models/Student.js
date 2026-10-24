@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+﻿const mongoose = require("mongoose");
 
 const studentSchema = new mongoose.Schema(
   {
@@ -23,6 +23,13 @@ const studentSchema = new mongoose.Schema(
       type: String,
       required: true,
       select: false,
+    },
+
+    role: {
+      type: String,
+      enum: ["student", "admin"],
+      default: "student",
+      required: true,
     },
   },
   {

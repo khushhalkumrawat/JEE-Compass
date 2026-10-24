@@ -1,7 +1,8 @@
 import type { TestResult } from "../types/test";
 import { getToken } from "./auth";
+import { API_BASE_URL } from "./config";
 
-const API_URL = "http://localhost:5000/api/test-results";
+const API_URL = `${API_BASE_URL}/test-results`;
 
 async function authenticatedRequest(
   url: string,
@@ -25,7 +26,7 @@ async function authenticatedRequest(
     });
   } catch {
     throw new Error(
-      "Cannot connect to the server. Make sure the backend is running.",
+      "Cannot connect to the server. Check your backend connection.",
     );
   }
 

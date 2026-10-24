@@ -86,6 +86,7 @@ router.post("/register", async (req, res) => {
         id: student._id.toString(),
         name: student.name,
         email: student.email,
+        role: student.role || "student",
       },
     });
   } catch (error) {
@@ -141,6 +142,7 @@ router.post("/login", async (req, res) => {
         id: student._id.toString(),
         name: student.name,
         email: student.email,
+        role: student.role || "student",
       },
     });
   } catch (error) {
@@ -203,6 +205,7 @@ router.get("/me", authenticateToken, async (req, res) => {
         id: student._id.toString(),
         name: student.name,
         email: student.email,
+        role: student.role || "student",
       },
     });
   } catch (error) {

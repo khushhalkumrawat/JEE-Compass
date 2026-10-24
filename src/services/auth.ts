@@ -1,7 +1,10 @@
+import { API_BASE_URL } from "./config";
+
 export interface Student {
   id: string;
   name: string;
   email: string;
+  role: "student" | "admin";
 }
 
 interface AuthResponse {
@@ -11,7 +14,7 @@ interface AuthResponse {
   message?: string;
 }
 
-const API_URL = "http://localhost:5000/api/auth";
+const API_URL = `${API_BASE_URL}/auth`;
 const TOKEN_KEY = "jee_compass_token";
 
 export function getToken(): string | null {
@@ -38,7 +41,7 @@ export function logout(): void {
 
 async function authRequest(
   endpoint: string,
-  payload: Record<string, string>
+  payload: Record<string, string>,
 ): Promise<{ token: string; student: Student }> {
   let response: Response;
 
@@ -52,7 +55,7 @@ async function authRequest(
     });
   } catch {
     throw new Error(
-      "Cannot connect to the server. Make sure the backend is running."
+      "Cannot connect to the server. Check your backend connection.",
     );
   }
 
@@ -77,11 +80,7 @@ async function authRequest(
   };
 }
 
-export function registerStudent(
-  name: string,
-  email: string,
-  password: string
-) {
+export function registerStudent(name: string, email: string, password: string) {
   return authRequest("register", { name, email, password });
 }
 
@@ -96,20 +95,35 @@ export async function fetchCurrentStudent(): Promise<Student> {
     throw new Error("Please log in to continue.");
   }
 
-  const response = await fetch(`${API_URL}/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  let response: Response;
 
-  const data = (await response.json()) as {
+  try {
+    response = await fetch(`${API_URL}/me`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  } catch {
+    throw new Error("Cannot connect to the server. Please try again.");
+  }
+
+  let data: {
     success: boolean;
     student?: Student;
     message?: string;
   };
 
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error("The server returned an invalid response.");
+  }
+
   if (!response.ok || !data.success || !data.student) {
-    logout();
+    if (response.status === 401) {
+      logout();
+    }
+
     throw new Error(data.message || "Unable to verify your session.");
   }
 

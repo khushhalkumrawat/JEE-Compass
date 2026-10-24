@@ -13,6 +13,8 @@ import StudyPlanPage from "./pages/StudyPlanPage";
 import TestHistory from "./pages/TestHistory";
 import TestReview from "./pages/TestReview";
 import AuthPage from "./pages/AuthPage";
+import AdminQuestions from "./pages/AdminQuestions";
+import { getStudent } from "./services/auth";
 
 export default function App() {
   return (
@@ -42,6 +44,16 @@ export default function App() {
           <Route path="/study-plan" element={<StudyPlanPage />} />
           <Route path="/test-history" element={<TestHistory />} />
           <Route path="/results/:attemptId/review" element={<TestReview />} />
+          <Route
+            path="/admin/questions"
+            element={
+              getStudent()?.role === "admin" ? (
+                <AdminQuestions />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
