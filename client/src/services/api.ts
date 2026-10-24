@@ -1,4 +1,5 @@
 import { getToken } from "./auth";
+import { API_BASE_URL } from "./config";
 
 export type ChatRole = "user" | "assistant";
 
@@ -30,7 +31,7 @@ export async function askDoubt(payload: AskDoubtPayload): Promise<string> {
   let response: Response;
 
   try {
-    response = await fetch("/api/doubts/ask", {
+    response = await fetch(`${API_BASE_URL}/doubts/ask`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
