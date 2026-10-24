@@ -3,7 +3,6 @@ import {
   ArrowUp,
   Bot,
   BookOpen,
-  Check,
   ChevronDown,
   CircleHelp,
   LoaderCircle,
