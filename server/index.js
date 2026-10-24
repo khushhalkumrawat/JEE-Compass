@@ -81,7 +81,7 @@ async function connectMongoDB() {
 
 app.use(
   cors({
-    origin: [process.env.FRONTEND_URL, "http://localhost:5173"].filter(Boolean),
+    origin: ["http://localhost:5173", "https://prep-zen-kohl.vercel.app"],
   }),
 );
 
