@@ -341,7 +341,7 @@ export default function TestAttempt() {
               </span>
 
               <span className="rounded-md bg-red-50 px-2 py-1.5 font-semibold text-red-700">
-                âˆ’{currentQuestion.negativeMarks} incorrect
+                -{currentQuestion.negativeMarks} incorrect
               </span>
 
               <span className="rounded-md bg-slate-100 px-2 py-1.5 text-slate-700">
@@ -473,10 +473,8 @@ export default function TestAttempt() {
         {/* Right-side palette: independent scroll */}
         <aside className="flex min-h-0 min-w-0 flex-col overflow-y-auto overscroll-contain rounded-xl border border-slate-200 bg-white p-4">
           <div className="mb-4 shrink-0 border-b border-slate-200 pb-3">
-            <h2 className="font-bold text-slate-900">Question Palette</h2>
-
-            <p className="mt-1 text-xs text-slate-500">
-              {activeSubject} Â· {subjectQuestions.length} questions
+            <p className="text-xs text-slate-500">
+              {activeSubject} · {subjectQuestions.length} questions
             </p>
           </div>
 
@@ -509,7 +507,7 @@ export default function TestAttempt() {
 
                 <div className="flex justify-between">
                   <span>Incorrect answer</span>
-                  <strong className="text-red-700">−1 mark</strong>
+                  <strong className="text-red-700"> -1 mark</strong>
                 </div>
 
                 <div className="flex justify-between">
@@ -517,29 +515,6 @@ export default function TestAttempt() {
                   <strong>0 marks</strong>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <div className="mt-4 grid shrink-0 grid-cols-2 gap-2">
-            <div className="rounded-lg bg-emerald-50 p-3">
-              <p className="text-xs text-emerald-700">Answered</p>
-              <p className="mt-1 text-xl font-bold text-emerald-800">
-                {answeredCount}
-              </p>
-            </div>
-
-            <div className="rounded-lg bg-red-50 p-3">
-              <p className="text-xs text-red-700">Unanswered</p>
-              <p className="mt-1 text-xl font-bold text-red-800">
-                {unansweredCount}
-              </p>
-            </div>
-
-            <div className="col-span-2 rounded-lg bg-purple-50 p-3">
-              <p className="text-xs text-purple-700">Marked for review</p>
-              <p className="mt-1 text-xl font-bold text-purple-800">
-                {reviewedCount}
-              </p>
             </div>
           </div>
 
