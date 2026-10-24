@@ -13,6 +13,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { askDoubt, type ChatMessage } from "../services/api";
+import MathContent from "../components/ui/MathContent";
 
 const subjects = ["Physics", "Chemistry", "Mathematics"] as const;
 
@@ -275,8 +276,14 @@ export default function DoubtSolver() {
                     {message.role === "user" ? "You" : "JEE Compass Tutor"}
                   </p>
 
-                  <div className="whitespace-pre-wrap break-words text-sm leading-7">
-                    {message.content}
+                  <div className="break-words text-sm leading-7">
+                    {message.role === "assistant" ? (
+                      <MathContent content={message.content} />
+                    ) : (
+                      <div className="whitespace-pre-wrap">
+                        {message.content}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
