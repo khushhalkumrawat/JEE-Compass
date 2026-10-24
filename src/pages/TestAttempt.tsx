@@ -4,6 +4,7 @@ import { Clock3, Flag, ChevronLeft, ChevronRight } from "lucide-react";
 import { sampleQuestions } from "../data/questions";
 import QuestionPalette from "../components/test/QuestionPalette";
 import type { TestAnswer, TestResult } from "../types/test";
+import { saveTestResult } from "../services/testResults";
 
 const TEST_DURATION_SECONDS = 30 * 60;
 
@@ -96,7 +97,7 @@ export default function TestAttempt() {
     );
 
     const result: TestResult = {
-      testId: "jee-compass-demo-test",
+      testId: crypto.randomUUID(),
       totalQuestions: sampleQuestions.length,
       attempted: correct + incorrect,
       correct,
@@ -112,7 +113,14 @@ export default function TestAttempt() {
     };
 
     sessionStorage.setItem("jee-compass-test-result", JSON.stringify(result));
-    navigate(`/results/${result.testId}`)
+
+    saveTestResult(result)
+      .catch((error) => {
+        console.error("MongoDB save failed:", error);
+      })
+      .finally(() => {
+        navigate(`/results/${result.testId}`);
+      });
   }
 
   if (!currentQuestion) {

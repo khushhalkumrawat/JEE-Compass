@@ -1,29 +1,52 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle2, XCircle, MinusCircle, ArrowRight, RotateCcw } from "lucide-react";
+import {
+  CheckCircle2,
+  XCircle,
+  MinusCircle,
+  ArrowRight,
+  RotateCcw,
+} from "lucide-react";
 import { sampleQuestions } from "../data/questions";
 import type { TestResult as TestResultData } from "../types/test";
+import { getTestResult } from "../services/testResults";
+import { useParams } from "react-router-dom";
 
 export default function TestResult() {
   const navigate = useNavigate();
   const [result, setResult] = useState<TestResultData | null>(null);
 
+  const { attemptId: testId } = useParams();
+
   useEffect(() => {
-    const saved = sessionStorage.getItem("jee-compass-test-result");
-    if (saved) {
+    async function loadResult() {
       try {
-        setResult(JSON.parse(saved) as TestResultData);
-      } catch {
-        setResult(null);
+        if (testId) {
+          const data = await getTestResult(testId);
+          setResult(data.result);
+          return;
+        }
+
+        const saved = sessionStorage.getItem("jee-compass-test-result");
+
+        if (saved) {
+          setResult(JSON.parse(saved) as TestResultData);
+        }
+      } catch (error) {
+        console.error("Failed to load test result:", error);
       }
     }
-  }, []);
+
+    loadResult();
+  }, [testId]);
 
   if (!result) {
     return (
       <section className="rounded-2xl border border-white/10 bg-[#0d1423] p-8 text-center">
         <h1 className="text-2xl font-bold text-white">No test result found</h1>
-        <p className="mt-2 text-sm text-slate-400">Attempt a mock test first to generate your scorecard.</p>
+        <p className="mt-2 text-sm text-slate-400">
+          Attempt a mock test first to generate your scorecard.
+        </p>
         <button
           type="button"
           onClick={() => navigate("/tests")}
@@ -41,15 +64,19 @@ export default function TestResult() {
       : 0;
 
   const stats = [
-    { label: "Score", value: `${result.score} / ${result.maxScore}`, color: "text-white" },
+    {
+      label: "Score",
+      value: `${result.score} / ${result.maxScore}`,
+      color: "text-white",
+    },
     { label: "Accuracy", value: `${accuracy}%`, color: "text-cyan-300" },
     { label: "Correct", value: result.correct, color: "text-emerald-400" },
     { label: "Incorrect", value: result.incorrect, color: "text-rose-400" },
     { label: "Unanswered", value: result.unanswered, color: "text-slate-400" },
-    { 
-      label: "Time Taken", 
+    {
+      label: "Time Taken",
       value: `${Math.floor(result.timeTakenSeconds / 60)}m ${result.timeTakenSeconds % 60}s`,
-      color: "text-indigo-300" 
+      color: "text-indigo-300",
     },
   ];
 
@@ -60,7 +87,9 @@ export default function TestResult() {
           <span className="rounded-md bg-emerald-400/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-400">
             Test Completed
           </span>
-          <h1 className="mt-2 text-3xl font-bold text-white">Scorecard & Review</h1>
+          <h1 className="mt-2 text-3xl font-bold text-white">
+            Scorecard & Review
+          </h1>
           <p className="mt-1 text-sm text-slate-400">
             Review your answers, verify solutions, and analyze your gaps.
           </p>
@@ -74,6 +103,15 @@ export default function TestResult() {
           >
             <RotateCcw size={16} /> Retake
           </button>
+
+          <button
+            type="button"
+            onClick={() => navigate(`/results/${testId}/review`)}
+            className="rounded-xl border border-white/10 bg-slate-900 px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-slate-800"
+          >
+            Review Answers
+          </button>
+
           <button
             type="button"
             onClick={() => navigate("/analysis")}
@@ -91,7 +129,9 @@ export default function TestResult() {
             className="rounded-2xl border border-white/10 bg-[#0d1423] p-4 text-center sm:text-left"
           >
             <p className="text-xs font-medium text-slate-400">{stat.label}</p>
-            <p className={`mt-2 text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+            <p className={`mt-2 text-2xl font-bold ${stat.color}`}>
+              {stat.value}
+            </p>
           </article>
         ))}
       </div>
@@ -100,7 +140,9 @@ export default function TestResult() {
         <h2 className="text-xl font-bold text-white">Detailed Solutions</h2>
         <div className="mt-5 space-y-4">
           {sampleQuestions.map((question, index) => {
-            const userAttempt = result.answers.find((a) => a.questionId === question.id);
+            const userAttempt = result.answers.find(
+              (a) => a.questionId === question.id,
+            );
             const selected = userAttempt?.answer;
             const isAnswered = selected !== null && selected !== undefined;
             const isCorrect = isAnswered && selected === question.correctAnswer;
@@ -112,13 +154,15 @@ export default function TestResult() {
                   !isAnswered
                     ? "border-white/10 bg-slate-900/40"
                     : isCorrect
-                    ? "border-emerald-500/20 bg-emerald-500/[0.03]"
-                    : "border-rose-500/20 bg-rose-500/[0.03]"
+                      ? "border-emerald-500/20 bg-emerald-500/[0.03]"
+                      : "border-rose-500/20 bg-rose-500/[0.03]"
                 }`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-white">Q{index + 1}.</span>
+                    <span className="font-semibold text-white">
+                      Q{index + 1}.
+                    </span>
                     <span className="rounded bg-slate-800 px-2 py-0.5 text-xs text-slate-400">
                       {question.subject} · {question.topic}
                     </span>
@@ -135,24 +179,37 @@ export default function TestResult() {
                       </span>
                     ) : (
                       <span className="flex items-center gap-1 text-rose-400">
-                        <XCircle size={14} /> Incorrect (-{question.negativeMarks})
+                        <XCircle size={14} /> Incorrect (-
+                        {question.negativeMarks})
                       </span>
                     )}
                   </span>
                 </div>
 
-                <p className="mt-3 text-sm leading-6 text-slate-200">{question.question}</p>
+                <p className="mt-3 text-sm leading-6 text-slate-200">
+                  {question.question}
+                </p>
 
                 <div className="mt-3 grid gap-2 sm:grid-cols-2">
                   <div className="rounded-lg bg-slate-900/80 p-2.5 text-xs">
                     <span className="text-slate-400">Your Answer: </span>
-                    <span className={isCorrect ? "font-bold text-emerald-300" : isAnswered ? "font-bold text-rose-300" : "text-slate-500"}>
+                    <span
+                      className={
+                        isCorrect
+                          ? "font-bold text-emerald-300"
+                          : isAnswered
+                            ? "font-bold text-rose-300"
+                            : "text-slate-500"
+                      }
+                    >
                       {selected ? String(selected) : "None"}
                     </span>
                   </div>
                   <div className="rounded-lg bg-slate-900/80 p-2.5 text-xs">
                     <span className="text-slate-400">Correct Answer: </span>
-                    <span className="font-bold text-emerald-300">{question.correctAnswer}</span>
+                    <span className="font-bold text-emerald-300">
+                      {question.correctAnswer}
+                    </span>
                   </div>
                 </div>
 

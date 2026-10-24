@@ -7,6 +7,7 @@ FileText,
 LayoutDashboard,
 Target,
 Flame,
+History,
 } from 'lucide-react'
 
 import type {
@@ -22,6 +23,7 @@ export const navigationItems: NavigationItem[] = [
 { label: 'Daily Practice', path: '/dpp', icon: FileText },
 { label: 'AI Doubt Solver', path: '/doubts', icon: BrainCircuit },
 { label: 'Mock Tests', path: '/tests', icon: Clock3 },
+{ label: "Test History", path: "/test-history", icon: History },
 { label: 'Performance Analysis', path: '/analysis', icon: ChartNoAxesCombined },
 ]
 
