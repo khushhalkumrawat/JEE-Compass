@@ -2,10 +2,16 @@ const mongoose = require("mongoose");
 
 const testResultSchema = new mongoose.Schema(
   {
+    studentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Student",
+      required: true,
+      index: true,
+    },
     testId: {
       type: String,
       required: true,
-      unique: true,
+      trim: true,
     },
     totalQuestions: Number,
     attempted: Number,
@@ -22,8 +28,23 @@ const testResultSchema = new mongoose.Schema(
         markedForReview: Boolean,
       },
     ],
+    mistakeTypes: {
+      type: Map,
+      of: String,
+      default: {},
+    },
   },
   { timestamps: true }
+);
+
+testResultSchema.index(
+  { studentId: 1, testId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      studentId: { $exists: true },
+    },
+  }
 );
 
 module.exports = mongoose.model("TestResult", testResultSchema);
