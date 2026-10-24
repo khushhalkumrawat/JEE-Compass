@@ -12,7 +12,6 @@ export default function QuestionPalette({
   current,
   answers,
   review,
-  visited,
   onSelect,
 }: QuestionPaletteProps) {
   const answered = answers.filter((answer) => answer !== null).length;
