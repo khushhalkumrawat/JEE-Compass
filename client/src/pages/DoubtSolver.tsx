@@ -183,7 +183,7 @@ export default function DoubtSolver() {
           </div>
 
           <div className="min-w-0 flex-1">
-            <h2 className="font-semibold text-white">JEE Compass Tutor</h2>
+            <h2 className="font-semibold text-white">PrepZen Tutor</h2>
             <p className="mt-0.5 text-xs text-slate-400">
               {subject} · Step-by-step explanations
             </p>
@@ -272,7 +272,7 @@ export default function DoubtSolver() {
                   }`}
                 >
                   <p className="mb-2 text-xs font-medium text-slate-400">
-                    {message.role === "user" ? "You" : "JEE Compass Tutor"}
+                    {message.role === "user" ? "You" : "PrepZen Tutor"}
                   </p>
 
                   <div className="break-words text-sm leading-7">

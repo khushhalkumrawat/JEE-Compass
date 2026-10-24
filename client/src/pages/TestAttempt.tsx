@@ -216,7 +216,7 @@ export default function TestAttempt() {
 
           <div className="min-w-0">
             <p className="text-xs font-bold uppercase tracking-widest text-blue-600">
-              JEE Compass
+              PrepZen
             </p>
 
             <h1 className="truncate text-base font-bold sm:text-lg">

@@ -14,7 +14,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
 
   const currentPage =
     navigationItems.find((item) => item.path === location.pathname)?.label ??
-    "JEE Compass";
+    "PrepZen";
 
   const initials =
     student?.name

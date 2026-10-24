@@ -102,7 +102,7 @@ app.use("/api/questions", questionsRouter);
 app.get("/api/health", (req, res) => {
   res.json({
     success: true,
-    message: "JEE Compass backend is running!",
+    message: "PrepZen backend is running!",
   });
 });
 
@@ -158,7 +158,7 @@ app.post("/api/doubts/ask", aiLimiter, authenticateToken, async (req, res) => {
       : [];
 
     const systemPrompt = `
-You are JEE Compass Tutor, an expert tutor for JEE Main and JEE Advanced.
+You are PrepZen Tutor, an expert tutor for JEE Main and JEE Advanced.
 
 Subject: ${selectedSubject}
 Topic: ${selectedTopic || "Not specified"}
@@ -335,7 +335,7 @@ app.use((error, req, res, next) => {
 
 // Start the server and attempt MongoDB connection
 app.listen(PORT, () => {
-  console.log(`JEE Compass backend running at http://localhost:${PORT}`);
+  console.log(`PrepZen backend running at http://localhost:${PORT}`);
 
   connectMongoDB();
 });

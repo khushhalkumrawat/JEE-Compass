@@ -16,7 +16,7 @@ export default function Dashboard() {
         <AnalysisBanner />
       </section>
       <footer className="mt-10 border-t border-white/[0.06] py-6 text-center text-xs text-slate-600">
-        JEE Compass · Learn with purpose. Improve with every attempt.
+        PrepZen · Learn with purpose. Improve with every attempt.
       </footer>
     </>
   );
