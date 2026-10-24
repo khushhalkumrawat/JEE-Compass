@@ -1,3 +1,5 @@
+import { getToken } from "./auth";
+
 export type ChatRole = "user" | "assistant";
 
 export interface ChatMessage {
@@ -19,6 +21,12 @@ interface AskDoubtResponse {
 }
 
 export async function askDoubt(payload: AskDoubtPayload): Promise<string> {
+  const token = getToken();
+
+  if (!token) {
+    throw new Error("Please log in to use the AI Doubt Solver.");
+  }
+
   let response: Response;
 
   try {
@@ -26,6 +34,7 @@ export async function askDoubt(payload: AskDoubtPayload): Promise<string> {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(60000),
@@ -36,7 +45,7 @@ export async function askDoubt(payload: AskDoubtPayload): Promise<string> {
     }
 
     throw new Error(
-      "Cannot connect to the AI server. Check that your backend is running.",
+      "Cannot connect to the AI server. Check your backend connection.",
     );
   }
 
@@ -50,9 +59,19 @@ export async function askDoubt(payload: AskDoubtPayload): Promise<string> {
     );
   }
 
+  if (response.status === 401) {
+    throw new Error("Your session has expired. Please log in again.");
+  }
+
+  if (response.status === 429) {
+    throw new Error(
+      data.message || "Too many requests. Please wait before trying again.",
+    );
+  }
+
   if (!response.ok || !data.success || !data.answer) {
     throw new Error(
-      data.message || `The AI server returned an error (${response.status}).`,
+      data.message || "The AI tutor is temporarily unavailable.",
     );
   }
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+﻿import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Clock3,
@@ -15,7 +15,7 @@ import QuestionPalette from "../components/test/QuestionPalette";
 import type { TestAnswer, TestResult } from "../types/test";
 import { saveTestResult } from "../services/testResults";
 
-const TEST_DURATION_SECONDS = 30 * 60;
+const TEST_DURATION_SECONDS = 3 * 60 * 60;
 const SUBJECTS = ["Physics", "Chemistry", "Mathematics"] as const;
 
 export default function TestAttempt() {
@@ -224,7 +224,7 @@ export default function TestAttempt() {
             </h1>
 
             <p className="text-xs text-slate-500">
-              Computer Based Test · Mock Examination
+              Computer Based Test Â· Mock Examination
             </p>
           </div>
         </div>
@@ -270,7 +270,7 @@ export default function TestAttempt() {
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-slate-200 bg-white px-4 py-2 sm:px-6">
         <div>
           <p className="text-xs text-slate-500">Examination</p>
-          <p className="text-sm font-semibold">JEE Main · Practice Paper</p>
+          <p className="text-sm font-semibold">JEE Main Â· Practice Paper</p>
         </div>
 
         <div className="text-xs text-slate-600 sm:text-sm">
@@ -341,7 +341,7 @@ export default function TestAttempt() {
               </span>
 
               <span className="rounded-md bg-red-50 px-2 py-1.5 font-semibold text-red-700">
-                −{currentQuestion.negativeMarks} incorrect
+                âˆ’{currentQuestion.negativeMarks} incorrect
               </span>
 
               <span className="rounded-md bg-slate-100 px-2 py-1.5 text-slate-700">
@@ -476,7 +476,7 @@ export default function TestAttempt() {
             <h2 className="font-bold text-slate-900">Question Palette</h2>
 
             <p className="mt-1 text-xs text-slate-500">
-              {activeSubject} · {subjectQuestions.length} questions
+              {activeSubject} Â· {subjectQuestions.length} questions
             </p>
           </div>
 
@@ -495,6 +495,29 @@ export default function TestAttempt() {
                 }
               }}
             />
+
+            <div className="mt-5 rounded-lg border border-blue-100 bg-blue-50 p-3">
+              <h3 className="mb-3 text-sm font-bold text-slate-900">
+                Marking Scheme
+              </h3>
+
+              <div className="space-y-2 text-xs text-slate-700">
+                <div className="flex justify-between">
+                  <span>Correct answer</span>
+                  <strong className="text-emerald-700">+4 marks</strong>
+                </div>
+
+                <div className="flex justify-between">
+                  <span>Incorrect answer</span>
+                  <strong className="text-red-700">−1 mark</strong>
+                </div>
+
+                <div className="flex justify-between">
+                  <span>Unanswered</span>
+                  <strong>0 marks</strong>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="mt-4 grid shrink-0 grid-cols-2 gap-2">

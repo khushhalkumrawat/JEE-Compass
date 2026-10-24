@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CheckCircle2,
   ChevronLeft,
@@ -9,17 +9,17 @@ import {
 } from "lucide-react";
 import { dppQuestions } from "../data/dppQuestions";
 import type { Question } from "../types/test";
+import {
+  fetchDPPProgress,
+  saveDPPProgress,
+  type DPPProgressData,
+} from "../services/dppProgress";
 
 type Subject = "All" | "Physics" | "Chemistry" | "Mathematics";
 
-interface DPPProgress {
-  answered: Record<number, string>;
-  correct: number[];
-}
-
 const STORAGE_KEY = "jee-compass-dpp-progress";
 
-const emptyProgress: DPPProgress = {
+const emptyProgress: DPPProgressData = {
   answered: {},
   correct: [],
 };
@@ -28,22 +28,92 @@ export default function DailyPractice() {
   const [subject, setSubject] = useState<Subject>("All");
   const [topic, setTopic] = useState("All");
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [progress, setProgress] = useState<DPPProgress>(emptyProgress);
+  const [progress, setProgress] = useState<DPPProgressData>(emptyProgress);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const progressRef = useRef<DPPProgressData>(emptyProgress);
+  const saveQueue = useRef<Promise<void>>(Promise.resolve());
+  const mounted = useRef(true);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) setProgress(JSON.parse(saved) as DPPProgress);
-    } catch {
-      localStorage.removeItem(STORAGE_KEY);
+    mounted.current = true;
+
+    async function loadProgress() {
+      setLoading(true);
+      setError("");
+
+      try {
+        const serverProgress = await fetchDPPProgress();
+        let restoredProgress = serverProgress;
+
+        // Migrate existing browser progress only if the account has no saved answers.
+        if (Object.keys(serverProgress.answered).length === 0) {
+          const oldSaved = localStorage.getItem(STORAGE_KEY);
+
+          if (oldSaved) {
+            try {
+              const oldProgress = JSON.parse(oldSaved) as DPPProgressData;
+
+              if (
+                oldProgress.answered &&
+                typeof oldProgress.answered === "object"
+              ) {
+                restoredProgress = {
+                  answered: oldProgress.answered,
+                  correct: Array.isArray(oldProgress.correct)
+                    ? oldProgress.correct
+                    : [],
+                };
+
+                await saveDPPProgress(restoredProgress);
+                localStorage.removeItem(STORAGE_KEY);
+
+                if (mounted.current) {
+                  setNotice("Your previous DPP progress has been saved to your account.");
+                }
+              } else {
+                localStorage.removeItem(STORAGE_KEY);
+              }
+            } catch {
+              // Keep server progress if old browser data is invalid.
+              localStorage.removeItem(STORAGE_KEY);
+            }
+          }
+        } else {
+          // Account progress takes priority over browser-specific data.
+          localStorage.removeItem(STORAGE_KEY);
+        }
+
+        if (mounted.current) {
+          progressRef.current = restoredProgress;
+          setProgress(restoredProgress);
+        }
+      } catch (err) {
+        if (mounted.current) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Unable to load your DPP progress. Please refresh the page.",
+          );
+        }
+      } finally {
+        if (mounted.current) setLoading(false);
+      }
     }
+
+    void loadProgress();
+
+    return () => {
+      mounted.current = false;
+    };
   }, []);
 
   const filteredQuestions = useMemo(() => {
     return dppQuestions.filter((question) => {
       const subjectMatches = subject === "All" || question.subject === subject;
       const topicMatches = topic === "All" || question.topic === topic;
-
       return subjectMatches && topicMatches;
     });
   }, [subject, topic]);
@@ -52,7 +122,6 @@ export default function DailyPractice() {
     const relevantQuestions = dppQuestions.filter(
       (question) => subject === "All" || question.subject === subject,
     );
-
     return [...new Set(relevantQuestions.map((question) => question.topic))];
   }, [subject]);
 
@@ -72,66 +141,156 @@ export default function DailyPractice() {
     setCurrentIndex(0);
   }
 
+  function saveSnapshot(nextProgress: DPPProgressData) {
+    progressRef.current = nextProgress;
+    setProgress(nextProgress);
+    setSaving(true);
+    setError("");
+    setNotice("");
+
+    // Queue saves in order so rapid answers cannot overwrite newer progress.
+    saveQueue.current = saveQueue.current
+      .catch(() => undefined)
+      .then(async () => {
+        await saveDPPProgress(nextProgress);
+      })
+      .then(() => {
+        if (mounted.current) {
+          setError("");
+        }
+      })
+      .catch((err: unknown) => {
+        if (mounted.current) {
+          setError(
+            err instanceof Error
+              ? `Could not save your progress: ${err.message}`
+              : "Could not save your progress. Please try again.",
+          );
+        }
+      })
+      .finally(() => {
+        if (mounted.current) {
+          setSaving(false);
+        }
+      });
+  }
+
   function saveAnswer(question: Question, answer: string) {
-    if (progress.answered[question.id] !== undefined) return;
+    const latest = progressRef.current;
+
+    if (latest.answered[question.id] !== undefined) return;
 
     const isCorrect = answer === question.correctAnswer;
 
-    const nextProgress: DPPProgress = {
+    const nextProgress: DPPProgressData = {
       answered: {
-        ...progress.answered,
+        ...latest.answered,
         [question.id]: answer,
       },
       correct: isCorrect
-        ? [...progress.correct, question.id]
-        : progress.correct,
+        ? [...latest.correct.filter((id) => id !== question.id), question.id]
+        : latest.correct.filter((id) => id !== question.id),
     };
 
-    setProgress(nextProgress);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(nextProgress));
+    saveSnapshot(nextProgress);
   }
 
-  function resetProgress() {
+  async function resetProgress() {
     const confirmed = window.confirm(
-      "Reset all your DPP answers and progress?",
+      "Reset all your DPP answers and progress for your account?",
     );
 
     if (!confirmed) return;
 
+    const previousProgress = progressRef.current;
+    progressRef.current = emptyProgress;
     setProgress(emptyProgress);
-    localStorage.removeItem(STORAGE_KEY);
     setCurrentIndex(0);
+    setError("");
+    setNotice("");
+    setSaving(true);
+
+    try {
+      // Queue reset after any pending answer saves.
+      saveQueue.current = saveQueue.current.catch(() => undefined).then(() =>
+        saveDPPProgress(emptyProgress),
+      );
+      await saveQueue.current;
+      localStorage.removeItem(STORAGE_KEY);
+
+      if (mounted.current) {
+        setNotice("Your DPP progress has been reset on your account.");
+      }
+    } catch (err) {
+      if (mounted.current) {
+        progressRef.current = previousProgress;
+        setProgress(previousProgress);
+        setError(
+          err instanceof Error
+            ? `Unable to reset progress: ${err.message}`
+            : "Unable to reset progress. Please try again.",
+        );
+      }
+    } finally {
+      if (mounted.current) setSaving(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <section className="rounded-2xl border border-white/10 bg-[#0d1423] p-8 text-center">
+        <Target className="mx-auto animate-pulse text-cyan-300" size={36} />
+        <p className="mt-4 text-slate-300">Loading your saved DPP progress...</p>
+      </section>
+    );
   }
 
   return (
     <div className="space-y-6">
-      {" "}
       <header>
-        {" "}
         <p className="text-sm font-semibold uppercase tracking-wider text-cyan-300">
-          Daily Practice Problems{" "}
-        </p>{" "}
+          Daily Practice Problems
+        </p>
         <h1 className="mt-2 text-3xl font-bold text-white">
-          Practice. Learn. Improve.{" "}
-        </h1>{" "}
+          Practice. Learn. Improve.
+        </h1>
         <p className="mt-2 text-slate-400">
-          Solve chapter-wise questions and understand every mistake.{" "}
-        </p>{" "}
+          Solve chapter-wise questions and understand every mistake.
+        </p>
       </header>
+
+      {error && (
+        <div
+          role="alert"
+          className="rounded-xl border border-rose-400/30 bg-rose-400/10 p-4 text-sm text-rose-200"
+        >
+          {error}
+        </div>
+      )}
+
+      {notice && (
+        <div className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-sm text-emerald-200">
+          {notice}
+        </div>
+      )}
+
+      {saving && (
+        <p className="text-sm text-cyan-300" role="status">
+          Saving your progress to your account...
+        </p>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-3">
         <ProgressCard label="Questions" value={filteredQuestions.length} />
         <ProgressCard label="Attempted" value={answeredCount} />
         <ProgressCard label="Correct" value={correctCount} />
       </div>
+
       <section className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-[#0d1423] p-5 sm:flex-row">
         <div className="flex-1">
-          <label
-            htmlFor="dpp-subject"
-            className="mb-2 block text-sm text-slate-400"
-          >
+          <label htmlFor="dpp-subject" className="mb-2 block text-sm text-slate-400">
             Subject
           </label>
-
           <select
             id="dpp-subject"
             value={subject}
@@ -148,13 +307,9 @@ export default function DailyPractice() {
         </div>
 
         <div className="flex-1">
-          <label
-            htmlFor="dpp-topic"
-            className="mb-2 block text-sm text-slate-400"
-          >
+          <label htmlFor="dpp-topic" className="mb-2 block text-sm text-slate-400">
             Chapter / Topic
           </label>
-
           <select
             id="dpp-topic"
             value={topic}
@@ -170,12 +325,11 @@ export default function DailyPractice() {
           </select>
         </div>
       </section>
+
       {!currentQuestion ? (
         <section className="rounded-2xl border border-white/10 bg-[#0d1423] p-8 text-center">
           <Target className="mx-auto text-cyan-300" size={36} />
-          <h2 className="mt-4 text-xl font-bold text-white">
-            No questions found
-          </h2>
+          <h2 className="mt-4 text-xl font-bold text-white">No questions found</h2>
           <p className="mt-2 text-slate-400">
             Try selecting a different subject or topic.
           </p>
@@ -186,7 +340,6 @@ export default function DailyPractice() {
             <span className="text-sm text-slate-400">
               Question {currentIndex + 1} of {filteredQuestions.length}
             </span>
-
             <span className="rounded-lg bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-300">
               {currentQuestion.subject} · {currentQuestion.topic}
             </span>
@@ -211,15 +364,13 @@ export default function DailyPractice() {
                   "border-emerald-400/50 bg-emerald-400/10 text-emerald-200";
               } else if (hasAnswered && isSelected && !isCorrectOption) {
                 optionStyle = "border-rose-400/50 bg-rose-400/10 text-rose-200";
-              } else if (isSelected) {
-                optionStyle = "border-cyan-400 bg-cyan-400/10 text-white";
               }
 
               return (
                 <button
                   key={option}
                   type="button"
-                  disabled={hasAnswered}
+                  disabled={hasAnswered || saving}
                   onClick={() => saveAnswer(currentQuestion, option)}
                   className={`flex w-full items-center gap-4 rounded-xl border p-4 text-left transition disabled:cursor-default ${optionStyle}`}
                 >
@@ -227,19 +378,11 @@ export default function DailyPractice() {
                     {String.fromCharCode(65 + index)}
                   </span>
                   <span>{option}</span>
-
                   {hasAnswered && isCorrectOption && (
-                    <CheckCircle2
-                      className="ml-auto shrink-0 text-emerald-400"
-                      size={19}
-                    />
+                    <CheckCircle2 className="ml-auto shrink-0 text-emerald-400" size={19} />
                   )}
-
                   {hasAnswered && isSelected && !isCorrectOption && (
-                    <CircleX
-                      className="ml-auto shrink-0 text-rose-400"
-                      size={19}
-                    />
+                    <CircleX className="ml-auto shrink-0 text-rose-400" size={19} />
                   )}
                 </button>
               );
@@ -250,18 +393,15 @@ export default function DailyPractice() {
             <div className="mt-6 rounded-xl border border-white/10 bg-slate-900/70 p-5">
               <p
                 className={`font-semibold ${
-                  progress.answered[currentQuestion.id] ===
-                  currentQuestion.correctAnswer
+                  progress.answered[currentQuestion.id] === currentQuestion.correctAnswer
                     ? "text-emerald-300"
                     : "text-rose-300"
                 }`}
               >
-                {progress.answered[currentQuestion.id] ===
-                currentQuestion.correctAnswer
+                {progress.answered[currentQuestion.id] === currentQuestion.correctAnswer
                   ? "Correct answer!"
                   : "Not quite. Review the explanation below."}
               </p>
-
               <p className="mt-3 text-sm leading-6 text-slate-300">
                 {currentQuestion.explanation}
               </p>
@@ -281,8 +421,9 @@ export default function DailyPractice() {
 
             <button
               type="button"
-              onClick={resetProgress}
-              className="flex items-center gap-2 rounded-xl border border-white/10 px-4 py-3 text-sm text-slate-300"
+              disabled={saving}
+              onClick={() => void resetProgress()}
+              className="flex items-center gap-2 rounded-xl border border-white/10 px-4 py-3 text-sm text-slate-300 disabled:opacity-40"
             >
               <RotateCcw size={16} />
               Reset Progress
@@ -307,9 +448,8 @@ export default function DailyPractice() {
 function ProgressCard({ label, value }: { label: string; value: number }) {
   return (
     <article className="rounded-2xl border border-white/10 bg-[#0d1423] p-5">
-      {" "}
-      <p className="text-sm text-slate-400">{label}</p>{" "}
-      <p className="mt-3 text-3xl font-bold text-white">{value}</p>{" "}
+      <p className="text-sm text-slate-400">{label}</p>
+      <p className="mt-3 text-3xl font-bold text-white">{value}</p>
     </article>
   );
 }
