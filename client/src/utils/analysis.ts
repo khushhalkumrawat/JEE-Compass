@@ -48,7 +48,7 @@ export function analyzeTestResult(result: TestResult) {
   }
 
   for (const answer of result.answers) {
-    const question = questionMap.get(answer.questionId)
+    const question = questionMap.get(Number(answer.questionId))
 
     if (!question) continue
 
@@ -103,7 +103,7 @@ export function analyzeTestResult(result: TestResult) {
 
   const questionReviews: QuestionReview[] = result.answers
     .map((answer) => {
-      const question = questionMap.get(answer.questionId)
+      const question = questionMap.get(Number(answer.questionId))
 
       if (!question) return null
 

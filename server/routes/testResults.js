@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const TestResult = require("../models/TestResult");
+const { recordStudyActivity } = require("../utils/studyActivity");
 const { authenticateToken } = require("./auth");
 
 const router = express.Router();
@@ -185,6 +186,15 @@ router.post("/", async (req, res) => {
       answers,
       mistakeTypes: mistakeTypes || {},
     });
+
+    try {
+      await recordStudyActivity(req.studentId);
+    } catch (activityError) {
+      console.error(
+        "Failed to record mock-test activity:",
+        activityError.message,
+      );
+    }
 
     return res.status(201).json({
       success: true,

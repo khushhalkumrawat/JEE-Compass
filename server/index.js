@@ -11,6 +11,7 @@ const testResultsRouter = require("./routes/testResults");
 const { router: authRouter, authenticateToken } = require("./routes/auth");
 const questionsRouter = require("./routes/questions");
 const dppProgressRouter = require("./routes/dppProgress");
+const studyActivityRoutes = require("./routes/studyActivity");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -97,6 +98,8 @@ app.use("/api/dpp-progress", dppProgressRouter);
 app.use("/api/auth", authLimiter, authRouter);
 
 app.use("/api/questions", questionsRouter);
+
+app.use("/api/study-activity", studyActivityRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
