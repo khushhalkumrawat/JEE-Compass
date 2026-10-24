@@ -9,6 +9,8 @@ import TestAttempt from "./pages/TestAttempt";
 import TestResult from "./pages/TestResult";
 import PerformanceAnalysis from "./pages/PerformanceAnalysis";
 import StudyPlanPage from "./pages/StudyPlanPage";
+import TestHistory from "./pages/TestHistory";
+import TestReview from "./pages/TestReview";
 
 export default function App() {
   return (
@@ -26,6 +28,8 @@ export default function App() {
           <Route path="/analysis" element={<PerformanceAnalysis />} />
           <Route path="/study-plan" element={<StudyPlanPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />{" "}
+          <Route path="/test-history" element={<TestHistory />} />
+          <Route path="/results/:attemptId/review" element={<TestReview />} />
         </Route>{" "}
       </Routes>{" "}
     </BrowserRouter>
